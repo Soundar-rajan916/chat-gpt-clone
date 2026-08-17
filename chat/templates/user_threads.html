@@ -1,0 +1,9 @@
+<div style="display: flex; flex-direction: column; gap: 10px;">
+    {% for thread in threads %}
+        <a href="{% url 'chat:view_thread' thread.id %}" class="thread-link">
+            {{ thread.title }}
+        </a>
+    {% empty %}
+        <div class="brutalist-box" style="padding: 10px; text-align: center; margin-bottom: 0;">No threads found.</div>
+    {% endfor %}
+</div>

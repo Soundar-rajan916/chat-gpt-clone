@@ -1,0 +1,18 @@
+# Django / Python
+*.pyc
+*__pycache__*
+db.sqlite3
+.env
+venv/
+env/
+.venv/
+*.log
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db

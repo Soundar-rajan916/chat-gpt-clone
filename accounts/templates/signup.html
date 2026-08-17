@@ -1,0 +1,33 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Signup</title>
+    <link rel="stylesheet" href="{% static 'chat/style.css' %}">
+</head>
+<body style="display: flex; justify-content: center; align-items: center; min-height: 100vh; background-color: #ffcc00; margin: 0;">
+    <div class="brutalist-box" style="width: 400px; padding: 30px; text-align: center; background-color: #fff;">
+        <h2 style="margin-top: 0; font-size: 32px;">SIGNUP</h2>
+        
+        <form method="POST" style="display: flex; flex-direction: column; gap: 20px; margin-top: 20px;">
+            {% csrf_token %}
+            
+            <input type="text" name="username" placeholder="Username" required style="width: 100%; box-sizing: border-box; margin: 0;">
+            <input type="password" name="password" placeholder="Password" required style="width: 100%; box-sizing: border-box; margin: 0;">
+            
+            <button type="submit" class="btn" style="background-color: #ff90e8; width: 100%; font-size: 18px;">Create Account</button>
+        </form>
+        
+        <p style="margin-top: 30px; font-weight: bold;">
+            Already have an account? <br>
+            <a href="{% url 'accounts:login' %}" style="color: #111; display: inline-block; margin-top: 10px; border-bottom: 3px solid #111; text-decoration: none;">Login here</a>.
+        </p>
+        
+        {% if error %}
+            <div class="brutalist-box" style="background-color: #ff5252; color: #fff; margin-top: 20px; padding: 10px; margin-bottom: 0;">
+                <p style="margin: 0; font-weight: bold;">{{ error }}</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

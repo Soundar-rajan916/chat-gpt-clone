@@ -1,0 +1,169 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Home</title>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link rel="stylesheet" href="{% static 'chat/style.css' %}">
+</head>
+
+<body>
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2><span id="user-greeting">Hello</span>, {{ user.username }}!</h2>
+        <a href="{% url 'accounts:logout' %}" class="btn" style="background-color: #90ffe8;">Logout</a>
+    </div>
+
+    <div class="layout">
+        <div class="sidebar">
+            <h3 style="margin-top: 0;">Your Threads</h3>
+            <a href="{% url 'chat:home' %}" class="btn"
+                style="margin-bottom: 20px; width: 100%; text-align: center; box-sizing: border-box;">
+                New Thread
+            </a>
+            <div id="thread-list" hx-get="{% url 'chat:user_threads' %}" hx-trigger="load" hx-swap="innerHTML">
+                Loading threads...
+            </div>
+        </div>
+
+        <div class="main-chat">
+            {% if active_thread %}
+            <h3 style="margin-top: 0; border-bottom: 3px solid #111; padding-bottom: 10px;" id="chat-title">{{ active_thread.title }}</h3>
+            {% else %}
+            <h3 style="margin-top: 0; border-bottom: 3px solid #111; padding-bottom: 10px;" id="chat-title">New Chat
+            </h3>
+            {% endif %}
+
+            <div id="chat-history">
+                {% if active_thread %}
+                {% for msg in active_thread.messages.all %}
+                <div class="message">
+                    <div class="message-header {% if msg.role == 'user' %}message-user{% else %}message-ai{% endif %}">
+                        {% if msg.role == 'user' %}You{% else %}AI{% endif %}
+                    </div>
+                    <div class="markdown-content" style="display:none;">{{ msg.content }}</div>
+                    <div class="markdown-rendered markdown-body"></div>
+                </div>
+                {% endfor %}
+                {% else %}
+                <div class="brutalist-box" style="text-align: center; margin: auto;" id="welcome-message">
+                    <h3 id="random-greeting">Welcome!</h3>
+                    <p>Type a message below to start a new chat.</p>
+                </div>
+                {% endif %}
+            </div>
+            <div id="response" style="display:none;"></div>
+
+            <form id="chat-form"
+                hx-post="{% if active_thread %}{% url 'chat:new_message' active_thread.id %}{% else %}{% url 'chat:new_message_initial' %}{% endif %}"
+                hx-target="#ai-stream-container" hx-swap="beforeend">
+                {% csrf_token %}
+                <input type="text" id="message" name="message" placeholder="Type your message..." required
+                    autocomplete="off">
+                <button type="submit" onclick="prepareStream()">
+                    Send
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            const greetings = [
+                "Nice to meet you!",
+                "How can I help you?",
+                "What can I do for you?",
+                "Good to see you!",
+                "Glad you're here!",
+                "Welcome back!",
+                "Hey, how can I help?"
+            ];
+            const greetingEl = document.getElementById("random-greeting");
+            if (greetingEl) {
+                greetingEl.innerText = greetings[Math.floor(Math.random() * greetings.length)];
+            }
+
+            const userGreetings = [
+                "Hello",
+                "Hi",
+                "Hey",
+                "Welcome",
+                "Greetings",
+                "Howdy",
+                "Yo",
+                "Hola",
+                "Heya",
+                "Sup"
+            ];
+            const userGreetingEl = document.getElementById("user-greeting");
+            if (userGreetingEl) {
+                userGreetingEl.innerText = userGreetings[Math.floor(Math.random() * userGreetings.length)];
+            }
+        });
+
+        document.body.addEventListener('htmx:configRequest', (event) => {
+            event.detail.headers['X-CSRFToken'] = '{{ csrf_token }}';
+        });
+
+        document.querySelectorAll('.markdown-content').forEach(function (el) {
+            const renderedDiv = el.nextElementSibling;
+            renderedDiv.innerHTML = marked.parse(el.textContent);
+        });
+
+        function prepareStream() {
+            const msg = document.getElementById('message').value;
+            if (!msg) return;
+            const historyDiv = document.getElementById('chat-history');
+
+            const welcomeMsg = document.getElementById('welcome-message');
+            if (welcomeMsg) {
+                welcomeMsg.remove();
+            }
+
+            historyDiv.innerHTML += `
+                <div class="message">
+                    <div class="message-header message-user">You</div>
+                    <div class="markdown-body">${marked.parse(msg)}</div>
+                </div>`;
+
+            historyDiv.innerHTML += `
+                <div class="message">
+                    <div class="message-header message-ai">AI</div>
+                    <div id="ai-stream-container" class="markdown-body" style="white-space: pre-wrap;"></div>
+                </div>`;
+
+            historyDiv.scrollTop = historyDiv.scrollHeight;
+        }
+
+        document.body.addEventListener('htmx:afterRequest', function (evt) {
+            if (evt.detail.target.id === "ai-stream-container") {
+                const streamContainer = document.getElementById("ai-stream-container");
+                let rawMarkdown = streamContainer.textContent;
+
+                if (rawMarkdown.includes("---REDIRECT---")) {
+                    const parts = rawMarkdown.split("---REDIRECT---");
+                    rawMarkdown = parts[0];
+                    const metadata = parts[1].split("---TITLE---");
+                    const newUrl = metadata[0];
+                    const newTitle = metadata[1];
+
+                    window.history.pushState(null, "", newUrl);
+                    htmx.ajax("GET", "/chat/user_threads", "#thread-list");
+                    document.getElementById("chat-form").setAttribute("hx-post", "/chat/new_message" + newUrl);
+                    htmx.process(document.getElementById("chat-form"));
+                    document.getElementById("chat-title").innerText = newTitle;
+                }
+
+                streamContainer.innerHTML = marked.parse(rawMarkdown);
+                streamContainer.removeAttribute('id');
+                document.getElementById("message").value = "";
+
+                const historyDiv = document.getElementById('chat-history');
+                historyDiv.scrollTop = historyDiv.scrollHeight;
+            }
+        });
+    </script>
+</body>
+
+</html>
