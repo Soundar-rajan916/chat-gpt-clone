@@ -1,6 +1,6 @@
 # Django ChatGPT Clone (Powered by Groq & LangChain)
 
-A lightweight, fast, and fully functional ChatGPT clone built with Django. It features a retro/brutalist UI design, real-time AI response streaming using **HTMX**, and is powered by the blazing fast **Groq API** (Llama 3) via **LangChain**.
+A lightweight, fast, and fully functional ChatGPT clone built with Django. It features a retro/brutalist UI design, real-time AI response streaming using **HTMX**, and is powered by the blazing fast **Groq API** via **LangChain**.
 
 ## 🚀 Features
 
@@ -15,7 +15,7 @@ A lightweight, fast, and fully functional ChatGPT clone built with Django. It fe
 
 - **Backend:** Python, Django
 - **Frontend:** HTMX, Marked.js, HTML5, CSS3 (Flexbox/Brutalist Aesthetic)
-- **AI/LLM:** Groq API (`llama-3.3-70b-versatile`)
+- **AI/LLM:** Groq API (`openai/gpt-oss-120b`)
 - **Orchestration:** LangChain (`langchain`, `langchain-groq`)
 - **Database:** SQLite (default Django DB)
 
@@ -57,7 +57,7 @@ Before you begin, ensure you have met the following requirements:
    Open the `.env` file and update it with your actual key:
    ```env
    GROQ_API_KEY=your_actual_groq_api_key_here
-   GROQ_MODEL=llama-3.3-70b-versatile
+   GROQ_MODEL=openai/gpt-oss-120b
    ```
 
 5. **Run Database Migrations:**
