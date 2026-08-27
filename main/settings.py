@@ -30,7 +30,7 @@ SECRET_KEY = 'django-insecure-3azzc$ebre4q6o!)d_-ok!e6%)y%lf_p2cx)$r8d@k4ti5kuy4
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["chat-gpt-clone-puce-iota.vercel.app",]
 
 LOGIN_URL = "/accounts/login/"
 # Application definition
